@@ -1,0 +1,33 @@
+#+TITLE: Mark Yank for Emacs
+
+* Overview
+
+  This simple Emacs minor mode provides the command =mark-yank= that marks the last yank / paste
+  in the current buffer.
+
+  When the mode is enabled, it advises the =yank= command and records the location. When the
+  =mark-yank= command is invoked, it sets the mark and point to the recorded location and
+  activates the region.
+
+* Installation
+
+  The package will be available on MELPA.  In the meantime, checkout this repo or download the
+  lisp file.  Ensure the location of the file is on your load path.
+
+  Once the package is installed, you'll need to load and activate =mark-yank-mode= in your Emacs
+  configuration:
+
+  #+begin_src elisp
+    (require 'mark-yank-mode)
+    (mark-yank-mode)
+  #+end_src
+
+  If you use =use-package=, use something like this:
+
+  #+begin_src elisp
+    (use-package mark-yank
+      :ensure t
+      :demand t
+      :bind ("C-M-y" . 'mark-yank)
+      :config (mark-yank-mode 1))
+  #+end_src
