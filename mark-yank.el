@@ -32,18 +32,22 @@
 
 ;;; Commentary:
 ;;
-;; When enabled, yank commands are advised to record the point and mark.  The command
-;; `mark-yank' will set the region to the recorded location and activate the region.
+;; When enabled, yank commands are advised to record the point and mark.  The
+;; command `mark-yank' will set the region to the recorded location and activate
+;; the region.
 ;;
-;; Immediately after yanking, you can press C-x C-x to activate the mark, but this mode is
-;; useful for setting the same region even after you've moved around and even made changes.
+;; Immediately after yanking, you can press C-x C-x to activate the mark, but
+;; this mode is useful for setting the same region even after you've moved
+;; around and even made changes.
 ;;
-;; This mode does not bind any keys.  I recommend C-M-y which is unused, similar to C-y used
-;; for yank, and similar to other C-M mark keys like C-M-SPC for mark sexp.
+;; This mode does not bind any keys.  I recommend C-M-y which is unused, similar
+;; to C-y used for yank, and similar to other C-M mark keys like C-M-SPC for
+;; mark sexp.
 ;;
-;; IMPORTANT: Do not defer loading until you want to mark since the mode must be enabled to
-;; monitor the location of the last yank.  If you are using use-package, be sure to add
-;; `:demand t' to force it to load immediately even though a key is bound:
+;; IMPORTANT: Do not defer loading until you want to mark since the mode must be
+;; enabled to monitor the location of the last yank.  If you are using
+;; use-package, be sure to add `:demand t' to force it to load immediately even
+;; though a key is bound:
 ;;
 ;;    (use-package mark-yank
 ;;      :ensure t
@@ -57,7 +61,7 @@
 (define-minor-mode mark-yank-mode
   "Allow marking of last yank region."
   :global t
-  :group 'editing     ; why is this required for modes with no vars?
+  :group 'editing
 
   (if mark-yank-mode
       (advice-add 'yank :after #'mark-yank--advise-after)
@@ -86,5 +90,7 @@
       (goto-char mark-yank--last-point)
       (setq mark-active t))))
 
-(provide 'mark-yank-mode)
-;;; mark-yank-mode.el ends here
+
+(provide 'mark-yank)
+
+;;; mark-yank.el ends here
