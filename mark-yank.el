@@ -5,7 +5,7 @@
 ;; Author: Michael Kleehammer <michael@kleehammer.com>
 ;; Maintainer: Michael Kleehammer <michael@kleehammer.com>
 ;; URL: https://github.com/mkleehammer/mark-yank
-;; Version: 1.0.0
+;; Version: 2.0.0
 ;; Package-Requires: ((emacs "24.4"))
 ;;
 ;; This file is NOT part of GNU Emacs.
@@ -70,24 +70,38 @@
   (message "mark-yank-mode %s" (if mark-yank-mode "enabled" "disabled")))
 
 (defvar-local mark-yank--last-mark nil
-  "Last copy/kill mark.")
+  "Last copy/kill mark marker.")
 
 (defvar-local mark-yank--last-point nil
-  "Last copy/kill point.")
+  "Last copy/kill point marker.")
 
 (defun mark-yank--advise-after (&rest _args)
   "Records current mark and point as last."
-  (setq mark-yank--last-mark (mark)
-        mark-yank--last-point (point)))
+  ;; Create the markers if necessary.  We'll set the insertion type of the
+  ;; earliest, mark, to be t which means text pasted there will move the marker.
+  ;; This keeps the marker with the original pasted text.  We'll ensure the
+  ;; insertion type of the point marker to the default nil.  When text is pasted
+  ;; there it is pasted after the marker so the marker stays with its original
+  ;; text.
+  (if (markerp mark-yank--last-mark)
+      ;; The markers already exist, just upate them.
+      (progn
+        (set-marker mark-yank--last-mark (mark))
+        (set-marker mark-yank--last-point (point)))
+
+    ;; The markers don't exist yet.
+    (setq mark-yank--last-mark (copy-marker (mark) t))
+    (setq mark-yank--last-point (point-marker))))
 
 (defun mark-yank ()
   "Mark last paste location and activates region."
   (interactive)
-  (if (not mark-yank--last-mark)
-      (message "No last yank")
+  (if (not (and (markerp mark-yank--last-mark)
+                (markerp mark-yank--last-point)))
+      (message "No last yank recorded")
     (progn
-      (push-mark mark-yank--last-mark)
-      (goto-char mark-yank--last-point)
+      (push-mark (marker-position mark-yank--last-mark))
+      (goto-char (marker-position mark-yank--last-point))
       (setq mark-active t))))
 
 
