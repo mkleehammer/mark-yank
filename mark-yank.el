@@ -1,4 +1,4 @@
-;;; mark-yank-mode.el --- Set region to the last yank  -*- lexical-binding: t -*-
+;;; mark-yank.el --- Set region to the last yank  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2023 Michael Kleehammer
 ;;
@@ -32,9 +32,10 @@
 
 ;;; Commentary:
 ;;
-;; When enabled, yank commands are advised to record the point and mark.  The
-;; command `mark-yank' will set the region to the recorded location and activate
-;; the region.
+;; A minor mode that remembers where the last paste occurred and provides the
+;; command `mark-yank' to select it at any time later.
+;;
+;; Use `mark-yank-global-mode' to enable this is in all buffers.
 ;;
 ;; Immediately after yanking, you can press C-x C-x to activate the mark, but
 ;; this mode is useful for setting the same region even after you've moved
@@ -45,29 +46,31 @@
 ;; mark sexp.
 ;;
 ;; IMPORTANT: Do not defer loading until you want to mark since the mode must be
-;; enabled to monitor the location of the last yank.  If you are using
-;; use-package, be sure to add `:demand t' to force it to load immediately even
-;; though a key is bound:
+;; enabled when the yank occurred so it can remember it.  For example, if you
+;; are using use-package, `:bind' will defer loading the package until you press
+;; the bound key.  Use `:demand' to load immediately.
 ;;
 ;;    (use-package mark-yank
 ;;      :ensure t
 ;;      :demand t
 ;;      :bind ("C-M-y" . 'mark-yank)
-;;      :config (mark-yank-mode 1))
+;;      :config (mark-yank-global-mode 1))
 
 ;;; Code:
 
 ;;;###autoload
 (define-minor-mode mark-yank-mode
   "Allow marking of last yank region."
-  :global t
   :group 'editing
-
   (if mark-yank-mode
       (advice-add 'yank :after #'mark-yank--advise-after)
-    (advice-remove 'yank #'mark-yank--advise-after))
+    (advice-remove 'yank #'mark-yank--advise-after)))
 
-  (message "mark-yank-mode %s" (if mark-yank-mode "enabled" "disabled")))
+;;;###autoload
+(define-globalized-minor-mode mark-yank-global-mode mark-yank-mode
+  (lambda () (mark-yank-mode 1))
+  :group 'editing)
+
 
 (defvar-local mark-yank--last-mark nil
   "Last copy/kill mark marker.")
@@ -99,10 +102,9 @@
   (if (not (and (markerp mark-yank--last-mark)
                 (markerp mark-yank--last-point)))
       (message "No last yank recorded")
-    (progn
-      (push-mark (marker-position mark-yank--last-mark))
-      (goto-char (marker-position mark-yank--last-point))
-      (setq mark-active t))))
+    (push-mark (marker-position mark-yank--last-mark))
+    (goto-char (marker-position mark-yank--last-point))
+    (setq mark-active t)))
 
 
 (provide 'mark-yank)
